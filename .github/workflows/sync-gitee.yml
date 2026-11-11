@@ -1,0 +1,31 @@
+# 暗黑重铸：latest.json 一更新，就把更新包和清单转发到 Gitee（.github/sync_gitee.py）。
+# 原件在整合包开发目录 dev\tools\gitee_relay\，用 publish_update.py --install-relay 装上来。
+# 需要仓库 Secret：GITEE_TOKEN（Gitee 私人令牌，勾 projects）。也可以在 Actions 页手动点「Run workflow」重跑。
+name: sync-gitee
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - latest.json
+      - .github/sync_gitee.py
+      - .github/workflows/sync-gitee.yml
+  workflow_dispatch:
+
+concurrency:
+  group: sync-gitee
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: 转发到 Gitee
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: python3 -u .github/sync_gitee.py
